@@ -1,0 +1,9 @@
+# DigitalOcean App Platform spec — Pilikia static site (free static tier)
+# In DigitalOcean: Create > Apps > GitHub repo > this repo, or upload via the dashboard.
+# This spec deploys the folder as one static site.
+name: pilikia
+static_sites:
+  - name: pilikia-site
+    source_dir: /
+    index_document: index.html
+    error_document: index.html

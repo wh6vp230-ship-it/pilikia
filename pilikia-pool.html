@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Pilikia Pool</title>
+<style>
+  :root{
+    --bg:#f3efe6; --panel:#fffdf7; --panel2:#efe9db; --ink:#1c2420; --muted:#5c665f;
+    --line:#ddd5c2; --accent:#c1531f; --accent-ink:#fff; --gold:#b8862e; --felt:#1d6b45;
+    --good:#1d7a45; --bad:#b3372a; --chip:#f3e9d2;
+    --shadow:0 10px 28px rgba(30,25,10,.14);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#121613; --panel:#1b201d; --panel2:#232a26; --ink:#eef2ec; --muted:#a7b3aa; --line:#333d36; --chip:#2a2f26; --shadow:0 10px 28px rgba(0,0,0,.45); }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family: ui-rounded, "Avenir Next", "Segoe UI", system-ui, sans-serif; line-height:1.45;}
+  button{min-height:44px}
+  .wrap{max-width:1060px;margin:0 auto;padding:18px 16px 40px}
+  header.top{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin:6px 0 14px}
+  h1{font-family: Georgia, "Times New Roman", serif; font-size:clamp(2rem,5vw,3rem); line-height:.95; margin:0; letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted); margin:6px 0 0; max-width:52ch; font-size:1rem}
+  .stats{display:flex;flex-wrap:wrap;gap:8px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px;min-width:86px;text-align:center;box-shadow:var(--shadow)}
+  .stat b{display:block;font-size:1.25rem;line-height:1}
+  .stat small{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.68rem;font-weight:700}
+  .stat.coins b{color:var(--gold)}
+  .table-card{background:#3a2417;border-radius:22px;padding:10px;box-shadow:var(--shadow)}
+  .canvas-wrap{position:relative;border-radius:14px;overflow:hidden;background:#145233}
+  canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+  .msg{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:rgba(10,18,13,.88);color:#fff;padding:8px 14px;border-radius:999px;font-weight:700;font-size:.92rem;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+  .msg:empty{display:none}
+  .controls{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+  @media(min-width:760px){ .controls{grid-template-columns:1.4fr .9fr} }
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+  .card h2{font-family:Georgia,serif;font-size:1.2rem;margin:0 0 8px}
+  .card p{margin:0 0 10px;color:var(--muted);font-size:.95rem}
+  .power-row{display:flex;align-items:center;gap:12px}
+  .power-track{flex:1;height:16px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .power-fill{height:100%;width:0%;background:linear-gradient(90deg,#d9a441,#c1531f);transition:width .05s linear}
+  input[type=range]{flex:1;accent-color:var(--accent);min-height:44px}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .btn{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:.95rem}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn.gold{background:var(--gold);border-color:var(--gold);color:#fff}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn:active{transform:translateY(1px)}
+  .aim-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .aim-row .btn{flex:1}
+  .sway-row{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .sway-track{position:relative;flex:1;height:20px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;overflow:hidden;cursor:ew-resize;touch-action:none}
+  .sway-center{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--muted);opacity:.55;transform:translateX(-50%)}
+  .sway-dot{position:absolute;top:4px;left:50%;width:12px;height:12px;border-radius:50%;background:var(--accent);transform:translateX(-50%)}
+  .sway-dot.off{background:var(--muted)}
+  .sway-controls{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  .sway-controls input[type=range]{flex:1;min-width:120px}
+  .sway-controls .btn{flex:0 0 auto}
+  .shop{display:grid;gap:10px}
+  .item{display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .item b{display:block}
+  .item span{color:var(--muted);font-size:.88rem;display:block}
+  .item .price{white-space:nowrap}
+  .how ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:.94rem}
+  .how li{margin:5px 0}
+  .win{display:none;margin-top:14px;background:#173d28;color:#eafff1;border-radius:16px;padding:18px;text-align:center}
+  .win.show{display:block}
+  .win h2{font-family:Georgia,serif;margin:0 0 6px;font-size:1.6rem}
+  .win p{margin:0 0 12px;color:#cfe8d6}
+  footer{color:var(--muted);font-size:.88rem;text-align:center;margin-top:22px}
+  .pill{display:inline-block;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:3px 9px;font-size:.8rem;font-weight:700}
+  .cue-grid{display:grid;gap:10px;grid-template-columns:1fr}
+  @media(min-width:760px){ .cue-grid{grid-template-columns:repeat(2,1fr)} }
+  @media(min-width:1020px){ .cue-grid{grid-template-columns:repeat(3,1fr)} }
+  .cue-card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px}
+  .cue-card.equipped{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset}
+  .cue-card .cue-top{display:flex;align-items:center;gap:10px;justify-content:space-between}
+  .cue-swatch{width:44px;height:10px;border-radius:999px;border:1px solid rgba(0,0,0,.35);flex:0 0 auto}
+  .cue-card b{font-size:1.02rem}
+  .cue-card .benefit{color:var(--muted);font-size:.88rem;margin:0}
+  .cue-card .stats-line{font-size:.82rem;color:var(--muted);margin:0}
+  .cue-state{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .cue-state.locked{color:var(--bad)} .cue-state.owned{color:var(--good)} .cue-state.equipped{color:var(--gold)}
+  .cue-card .btn{margin-top:auto}
+  .cue-price-badge{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:var(--gold);color:#fff;font-weight:900;font-size:1.05rem;line-height:1;padding:9px 14px;border-radius:999px;letter-spacing:.01em;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+  .cue-price-badge.free{background:var(--good)}
+  .cue-price-badge .coin{font-size:1.1rem}
+  .cue-dollar{font-size:.92rem;font-weight:800;color:var(--ink);margin:0;line-height:1.2}
+  .cue-dollar span{font-weight:600;color:var(--muted);font-size:.85rem}
+  .cue-rate-note{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:.95rem}
+  .cue-rate-note strong{font-size:1.05rem;white-space:nowrap}
+  .cue-need{font-size:.85rem;font-weight:700;margin:0;min-height:1.1em}
+  .cue-need.need{color:var(--bad)}
+  .cue-need.ok{color:var(--good)}
+  .cue-need.owned{color:var(--muted);font-weight:600}
+  .cue-balance-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0 12px}
+  .cue-balance-bar .bal-label{font-size:.9rem;color:var(--muted);font-weight:700}
+  .cue-balance-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#fff;font-weight:900;font-size:1.15rem;padding:7px 14px;border-radius:999px;line-height:1}
+  .cue-progress{margin-top:14px}
+  .cue-progress-track{height:14px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .cue-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#d9a441,#c1531f);transition:width .3s ease}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .badge{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.82rem;font-weight:700}
+  .badge.locked{opacity:.45;font-weight:600}
+  #cuePerkLine{font-size:.9rem}
+  .level-panel{margin-bottom:14px}
+  .level-banner{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;justify-content:space-between}
+  .level-banner h2{font-family:Georgia,serif;font-size:1.45rem;margin:0 0 4px;line-height:1.15}
+  .level-banner p{margin:0;color:var(--muted);font-size:.94rem;max-width:62ch}
+  .level-facts{display:flex;flex-wrap:wrap;gap:8px}
+  .level-fact{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 12px;text-align:center;min-width:92px}
+  .level-fact b{display:block;font-size:1.15rem;line-height:1.1}
+  .level-fact small{color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:.66rem;font-weight:800}
+  .level-fact.warn b{color:var(--bad)}
+  .overall-track{height:14px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:12px}
+  .overall-fill{height:100%;width:3.3%;background:linear-gradient(90deg,#9aa3a8,#d9a441 55%,#e8eef2);transition:width .3s ease}
+  .stage-blocks{display:grid;gap:12px;margin-top:14px}
+  @media(min-width:760px){ .stage-blocks{grid-template-columns:repeat(3,1fr)} }
+  .stage-block{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--panel2)}
+  .stage-block.active{box-shadow:0 0 0 2px var(--gold) inset}
+  .stage-block.silver .stage-head b{color:#6b7280}
+  .stage-block.gold .stage-head b{color:#9a7414}
+  .stage-block.platinum .stage-head b{color:#5b7a8a}
+  .stage-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px}
+  .stage-head b{font-size:1.05rem}
+  .stage-head span{font-size:.8rem;color:var(--muted);font-weight:700;white-space:nowrap}
+  .stage-block p{margin:0 0 10px;color:var(--muted);font-size:.85rem}
+  .level-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .lvl-btn{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;min-height:44px;padding:6px 2px;font-weight:800;cursor:pointer;font-size:.92rem;line-height:1.1}
+  .lvl-btn small{display:block;font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .lvl-btn.current{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;background:var(--panel)}
+  .lvl-btn.done{background:var(--good);border-color:var(--good);color:#fff}
+  .lvl-btn.done small{color:rgba(255,255,255,.85)}
+  .lvl-btn.done.current{box-shadow:0 0 0 2px #fff inset}
+  .lvl-btn:disabled{opacity:.38;cursor:not-allowed}
+  .fail{display:none;margin-top:14px;background:#4a1f1a;color:#ffe9e4;border-radius:16px;padding:18px;text-align:center}
+  .fail.show{display:block}
+  .fail h2{font-family:Georgia,serif;margin:0 0 6px;font-size:1.5rem}
+  .fail p{margin:0 0 12px;color:#f3cfc7}
+  .skip-stage{margin-top:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .skip-stage-copy{flex:1 1 260px;min-width:0}
+  .skip-stage-copy b{font-size:1.02rem;display:block}
+  .skip-stage-copy p{margin:3px 0 0;color:var(--muted);font-size:.9rem}
+  .skip-stage-copy .skip-need{font-weight:700;color:var(--ink)}
+  .skip-stage-copy .skip-need.need{color:var(--bad)}
+  .skip-stage-copy .skip-need.ok{color:var(--good)}
+  .skip-stage .btn{flex:0 0 auto;white-space:normal;text-align:center}
+  @media(max-width:560px){ .skip-stage .btn{width:100%} }
+  .coin-packs{margin:14px 0 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0}
+  .coin-packs h3{font-family:Georgia,serif;font-size:1.05rem;margin:0 0 4px}
+  .coin-packs .pack-note{margin:0 0 12px;color:var(--muted);font-size:.88rem}
+  .coin-packs .pack-note strong{color:var(--ink)}
+  .demo-tag{display:inline-block;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);vertical-align:middle;margin-left:6px}
+  .pack-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  @media(min-width:480px){ .pack-grid{grid-template-columns:repeat(3,1fr)} }
+  .pack-btn{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:14px;padding:12px 8px 10px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:96px;justify-content:center}
+  .pack-btn:active{transform:translateY(1px)}
+  .pack-btn .pack-price{font-size:1.35rem;font-weight:900;line-height:1;color:var(--accent)}
+  .pack-btn .pack-coins{font-size:1rem;font-weight:900;line-height:1.15}
+  .pack-btn .pack-coins .coin{font-size:1.05rem}
+  .pack-btn .pack-per{font-size:.75rem;color:var(--muted);font-weight:700}
+  .pack-btn .pack-cta{margin-top:6px;background:var(--gold);color:#fff;font-weight:800;font-size:.78rem;line-height:1;padding:6px 10px;border-radius:999px}
+  .pack-btn.featured{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+  #packMsg{margin:10px 0 0;min-height:1.2em;font-size:.92rem}
+  #packMsg:empty{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Pilikia <span>Pool</span></h1>
+      <p class="sub">Rack ’em up, island style — 30 levels across Silver, Gold and Platinum. Pot all 15 balls before you run out of shots — every pot earns coins for power-ups.</p>
+    </div>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><b id="statLevel" style="font-size:1rem;padding-top:4px">Silver · L1</b><small>Stage · Level</small></div>
+      <div class="stat"><b id="statShots">0</b><small>Shots used</small></div>
+      <div class="stat"><b id="statShotsLeft">30</b><small>Shots left</small></div>
+      <div class="stat"><b id="statPotted">0 / 15</b><small>Potted</small></div>
+      <div class="stat"><b id="statLeft">15</b><small>Balls left</small></div>
+      <div class="stat coins"><b id="statCoins">🪙 50</b><small>Coins</small></div>
+      <div class="stat"><b id="statCue" style="font-size:1rem;padding-top:4px">Basic Cue</b><small>Equipped cue</small></div>
+    </div>
+  </header>
+
+  <section class="card level-panel" aria-label="Levels — Silver, Gold and Platinum stages">
+    <div class="level-banner">
+      <div>
+        <h2 id="levelTitle">🥈 Silver — Level 1 of 10</h2>
+        <p id="levelSub">Level 1 of 30 overall • Clear the table in 30 shots or fewer to advance. Later levels get tighter pockets, more aim sway and fewer shots.</p>
+      </div>
+      <div class="level-facts" aria-live="polite">
+        <div class="level-fact"><b id="factShotsLeft">30</b><small>Shots left</small></div>
+        <div class="level-fact"><b id="factSway">×1.00</b><small>Aim sway</small></div>
+        <div class="level-fact"><b id="factPockets">Generous</b><small>Pockets</small></div>
+        <div class="level-fact"><b id="factReward">+27 🪙</b><small>Clear bonus</small></div>
+      </div>
+    </div>
+    <div class="overall-track" aria-hidden="true"><div class="overall-fill" id="overallFill"></div></div>
+    <p style="margin:8px 0 0;color:var(--muted);font-size:.9rem" id="overallText">Overall progress: Level 1 of 30 • 0 of 30 levels cleared</p>
+
+    <div class="stage-blocks">
+      <div class="stage-block silver active" data-stage-block="0">
+        <div class="stage-head"><b>🥈 Silver</b><span>Levels 1–10</span></div>
+        <p>Stage 1 • Gentle sway, generous pockets. Finish Level 10 for a <strong>+100 🪙 stage bonus</strong>.</p>
+        <div class="level-grid" data-level-grid="0" role="group" aria-label="Silver levels 1 to 10"></div>
+      </div>
+      <div class="stage-block gold" data-stage-block="1">
+        <div class="stage-head"><b>🥇 Gold</b><span>Levels 11–20</span></div>
+        <p>Stage 2 • More sway, tighter pockets, fewer shots. Finish Level 20 for a <strong>+150 🪙 stage bonus</strong>.</p>
+        <div class="level-grid" data-level-grid="1" role="group" aria-label="Gold levels 11 to 20"></div>
+      </div>
+      <div class="stage-block platinum" data-stage-block="2">
+        <div class="stage-head"><b>💎 Platinum</b><span>Levels 21–30</span></div>
+        <p>Stage 3 • The tightest test — most sway, fewest shots. Finish Level 30 for a <strong>+250 🪙 stage bonus</strong>.</p>
+        <div class="level-grid" data-level-grid="2" role="group" aria-label="Platinum levels 21 to 30"></div>
+      </div>
+    </div>
+    <div class="skip-stage" aria-label="Skip to next stage">
+      <div class="skip-stage-copy">
+        <b>⏭️ Skip to Next Stage</b>
+        <p id="skipStageText">Jump ahead to the next stage, even if you haven't finished this one. No stage-completion bonus for the stage you skip.</p>
+        <p class="skip-need need" id="skipStageNeed" aria-live="polite">Need 950 more coins — you have 50 / 1000 🪙</p>
+      </div>
+      <button class="btn gold" id="skipStageBtn" type="button" disabled>Skip to Next Stage — 1000 coins ($10)</button>
+    </div>
+    <p id="levelMsg" style="margin:12px 0 0;min-height:1.2em" aria-live="polite">Tap any unlocked level to play it. Locked levels open as you clear the one before it.</p>
+  </section>
+
+  <section class="table-card" aria-label="Pool table">
+    <div class="canvas-wrap">
+      <canvas id="game" width="1000" height="540"></canvas>
+      <div class="msg" id="msg">Break time — aim and shoot!</div>
+    </div>
+  </section>
+
+  <div class="win" id="winBox">
+    <h2 id="winTitle">🏆 Level cleared!</h2>
+    <p id="winText">You potted all 15 balls.</p>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn gold" id="winAgain">Next level →</button>
+      <button class="btn" id="winReplay">↺ Replay this level</button>
+    </div>
+  </div>
+
+  <div class="fail" id="failBox">
+    <h2>Out of shots</h2>
+    <p id="failText">You used all your shots with balls still on the table.</p>
+    <button class="btn gold" id="failRetry">↺ Try this level again</button>
+  </div>
+
+  <div class="controls">
+    <section class="card">
+      <h2>Take your shot</h2>
+      <p>Move your mouse or finger over the table to aim. <strong>Your mouse now controls the sway:</strong> move it left and the aim sways left, move it right and the aim sways right — the dot in the sway meter follows your mouse. Nudge the mouse to hold the guide line on your target, then <strong>press, drag back, and release</strong> to shoot — or set the power below and tap Shoot.</p>
+      <p id="cuePerkLine">🎱 <strong>Basic Cue equipped</strong> — standard sway, power and aim guide. Unlock better cues below!</p>
+      <div class="power-row">
+        <span class="pill">Power</span>
+        <div class="power-track"><div class="power-fill" id="powerFill"></div></div>
+        <b id="powerPct">0%</b>
+      </div>
+      <input type="range" id="powerRange" min="5" max="100" value="55" aria-label="Shot power" />
+      <div class="aim-row">
+        <button class="btn" id="aimLeft" aria-label="Aim left">◀ Aim</button>
+        <button class="btn" id="aimRight" aria-label="Aim right">Aim ▶</button>
+      </div>
+      <div class="sway-row">
+        <span class="pill">Aim sway</span>
+        <div class="sway-track" id="swayTrack" role="slider" aria-label="Aim sway — drag to control sway with the mouse" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" tabindex="0" title="Drag to control the sway"><div class="sway-center"></div><div class="sway-dot" id="swayDot"></div></div>
+        <b id="swayVal">0.0°</b>
+      </div>
+      <div class="sway-controls">
+        <span class="pill">Sway amount</span>
+        <input type="range" id="swayRange" min="0" max="100" value="50" aria-label="Aim sway amount" />
+        <button class="btn" id="swayModeBtn" aria-pressed="true" title="Switch sway control between mouse and automatic">🖱️ Mouse controls sway</button>
+        <button class="btn" id="swayCenterBtn" title="Bring the sway back to centre">Center sway</button>
+        <button class="btn" id="swayBtn" aria-pressed="true">Sway on</button>
+      </div>
+      <p style="margin-top:8px">Tip: you can also <strong>drag the sway meter</strong> above with your mouse or finger, or use the <strong>mouse wheel</strong> over the table for fine sway adjustments.</p>
+      <div class="btn-row">
+        <button class="btn primary" id="shootBtn">🎱 Shoot</button>
+        <button class="btn" id="breakBtn">💥 Break shot</button>
+        <button class="btn" id="newRackBtn">↺ New rack</button>
+        <button class="btn" id="soundBtn">🔊 Sound on</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Coin shop</h2>
+      <p>Earn <strong>10 coins per ball</strong> potted, a <strong>clear bonus that grows every level</strong> (27 🪙 on Level 1, up to 68 🪙 on Level 30), plus a big stage bonus — <strong>+100 🪙</strong> for Silver, <strong>+150 🪙</strong> for Gold, <strong>+250 🪙</strong> for Platinum. Spend coins here — no real money, just in-game coins.</p>
+      <div class="cue-rate-note"><strong>$5 = 500 coins</strong><span>($1 = 100 coins) — dollar amounts are equivalent value only.</span></div>
+      <div class="coin-packs" aria-label="Coin packs">
+        <h3>🪙 Coin packs <span class="demo-tag">Demo purchase</span></h3>
+        <p class="pack-note">Top up your in-game balance. <strong>Demo / in-game purchase only — no real money is charged</strong> and live charging is not set up yet. Tap a pack and the coins are added straight to your balance.</p>
+        <div class="pack-grid" role="group" aria-label="Choose a coin pack from $5 to $30">
+          <button class="pack-btn" type="button" data-pack data-pack-usd="5" data-pack-coins="500">
+            <span class="pack-price">$5</span>
+            <span class="pack-coins"><span class="coin">🪙</span> 500 coins</span>
+            <span class="pack-per">$1 = 100 coins</span>
+            <span class="pack-cta">Add 500 🪙</span>
+          </button>
+          <button class="pack-btn" type="button" data-pack data-pack-usd="10" data-pack-coins="1000">
+            <span class="pack-price">$10</span>
+            <span class="pack-coins"><span class="coin">🪙</span> 1,000 coins</span>
+            <span class="pack-per">$1 = 100 coins</span>
+            <span class="pack-cta">Add 1,000 🪙</span>
+          </button>
+          <button class="pack-btn" type="button" data-pack data-pack-usd="15" data-pack-coins="1500">
+            <span class="pack-price">$15</span>
+            <span class="pack-coins"><span class="coin">🪙</span> 1,500 coins</span>
+            <span class="pack-per">$1 = 100 coins</span>
+            <span class="pack-cta">Add 1,500 🪙</span>
+          </button>
+          <button class="pack-btn" type="button" data-pack data-pack-usd="20" data-pack-coins="2000">
+            <span class="pack-price">$20</span>
+            <span class="pack-coins"><span class="coin">🪙</span> 2,000 coins</span>
+            <span class="pack-per">$1 = 100 coins</span>
+            <span class="pack-cta">Add 2,000 🪙</span>
+          </button>
+          <button class="pack-btn" type="button" data-pack data-pack-usd="25" data-pack-coins="2500">
+            <span class="pack-price">$25</span>
+            <span class="pack-coins"><span class="coin">🪙</span> 2,500 coins</span>
+            <span class="pack-per">$1 = 100 coins</span>
+            <span class="pack-cta">Add 2,500 🪙</span>
+          </button>
+          <button class="pack-btn featured" type="button" data-pack data-pack-usd="30" data-pack-coins="3000">
+            <span class="pack-price">$30</span>
+            <span class="pack-coins"><span class="coin">🪙</span> 3,000 coins</span>
+            <span class="pack-per">$1 = 100 coins</span>
+            <span class="pack-cta">Add 3,000 🪙</span>
+          </button>
+        </div>
+        <p id="packMsg" aria-live="polite"></p>
+      </div>
+      <div class="shop">
+        <div class="item">
+          <div><b>Long Aim Guide</b><span>Shows a longer aim line + first-ball prediction for the rest of the game.</span></div>
+          <button class="btn price" id="buyGuide">30 🪙</button>
+        </div>
+        <div class="item">
+          <div><b>Golden Cue</b><span>A shiny gold cue stick. Pure style — and bragging rights.</span></div>
+          <button class="btn price" id="buyCue">50 🪙</button>
+        </div>
+        <div class="item">
+          <div><b>Scratch Shield</b><span>Next time you pot the cue ball, it comes back free — no lost turn feeling.</span></div>
+          <button class="btn price" id="buyShield">20 🪙</button>
+        </div>
+      </div>
+      <p id="shopMsg" style="margin-top:10px;min-height:1.2em"></p>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:14px" aria-label="Cue upgrades and rewards">
+    <h2>🎱 Cue upgrades &amp; rewards</h2>
+    <p>Spend the coins you earn potting balls on better cues. Every cue gives a <strong>real in-game perk</strong> the moment you equip it — steadier aim, more power, or a longer guide. Unlocking a cue also pays you a <strong>coin bonus</strong> and earns a <strong>badge</strong>. Switch between cues you own any time, free.</p>
+    <div class="cue-balance-bar" aria-live="polite">
+      <span class="bal-label">Your coin balance</span>
+      <span class="cue-balance-badge" id="cueBalanceCoins">🪙 50 coins</span>
+      <span style="font-size:.88rem;color:var(--muted)">Earn +10 🪙 per ball potted • level clear bonus grows to 68 🪙 • stage bonuses up to +250 🪙</span>
+    </div>
+    <div class="cue-rate-note" role="note"><strong>$5 = 500 coins</strong><span>So $1 = 100 coins. Dollar amounts below show the equivalent value only — cues are still bought with in-game coins, not real money.</span></div>
+    <div class="cue-grid" id="cueGrid">
+      <div class="cue-card" data-cue="basic">
+        <div class="cue-top"><b>Basic Cue</b><span class="cue-swatch" style="background:#c98a4b"></span></div>
+        <span class="cue-price-badge free" data-cue-price>Free</span>
+        <p class="cue-dollar" data-cue-dollar>= $0.00 <span>equivalent value</span></p>
+        <p class="benefit">Your trusty starter cue. Balanced and reliable.</p>
+        <p class="stats-line">Sway ×1.0 • Power ×1.0 • Standard aim guide</p>
+        <p class="cue-need owned" data-cue-need>Already yours — no coins needed</p>
+        <span class="cue-state equipped" data-cue-state>Equipped</span>
+        <button class="btn" data-cue-btn disabled>Equipped ✓</button>
+      </div>
+      <div class="cue-card" data-cue="steady">
+        <div class="cue-top"><b>Steady Cue</b><span class="cue-swatch" style="background:#2e7d6b"></span></div>
+        <span class="cue-price-badge" data-cue-price><span class="coin">🪙</span> 40 coins</span>
+        <p class="cue-dollar" data-cue-dollar>= $0.40 <span>equivalent value</span></p>
+        <p class="benefit">A balanced, grippy cue that calms your aim right down.</p>
+        <p class="stats-line">Aim sway cut by 55% • Power ×1.0</p>
+        <p class="cue-need ok" data-cue-need>You can afford this cue</p>
+        <span class="cue-state locked" data-cue-state>Locked</span>
+        <button class="btn" data-cue-btn>Unlock • 40 🪙</button>
+      </div>
+      <div class="cue-card" data-cue="power">
+        <div class="cue-top"><b>Power Cue</b><span class="cue-swatch" style="background:#8f2f1a"></span></div>
+        <span class="cue-price-badge" data-cue-price><span class="coin">🪙</span> 80 coins</span>
+        <p class="cue-dollar" data-cue-dollar>= $0.80 <span>equivalent value</span></p>
+        <p class="benefit">A heavier cue that smacks the cue ball harder on every shot — big breaks, long rolls.</p>
+        <p class="stats-line">Shot power +18% • Slightly steadier sway</p>
+        <p class="cue-need need" data-cue-need>Need 30 more coins</p>
+        <span class="cue-state locked" data-cue-state>Locked</span>
+        <button class="btn" data-cue-btn>Unlock • 80 🪙</button>
+      </div>
+      <div class="cue-card" data-cue="precision">
+        <div class="cue-top"><b>Precision Cue</b><span class="cue-swatch" style="background:#2456c8"></span></div>
+        <span class="cue-price-badge" data-cue-price><span class="coin">🪙</span> 140 coins</span>
+        <p class="cue-dollar" data-cue-dollar>= $1.40 <span>equivalent value</span></p>
+        <p class="benefit">A fine-tipped cue for sharpshooters — a much longer aim guide with first-ball prediction.</p>
+        <p class="stats-line">Long guide + prediction • Sway cut by 30% • Power +5%</p>
+        <p class="cue-need need" data-cue-need>Need 90 more coins</p>
+        <span class="cue-state locked" data-cue-state>Locked</span>
+        <button class="btn" data-cue-btn>Unlock • 140 🪙</button>
+      </div>
+      <div class="cue-card" data-cue="golden">
+        <div class="cue-top"><b>Golden Cue 👑</b><span class="cue-swatch" style="background:#d9a441"></span></div>
+        <span class="cue-price-badge" data-cue-price><span class="coin">🪙</span> 250 coins</span>
+        <p class="cue-dollar" data-cue-dollar>= $2.50 <span>equivalent value</span></p>
+        <p class="benefit">The top reward — the best of everything, in shining gold. The champion's cue.</p>
+        <p class="stats-line">Sway cut by 60% • Power +20% • Longest guide + prediction</p>
+        <p class="cue-need need" data-cue-need>Need 200 more coins</p>
+        <span class="cue-state locked" data-cue-state>Locked</span>
+        <button class="btn" data-cue-btn>Unlock • 250 🪙</button>
+      </div>
+    </div>
+    <div class="cue-progress">
+      <p style="margin:0 0 6px"><span class="pill">Next cue</span> <b id="cueProgressText">40 🪙 toward the Steady Cue</b></p>
+      <div class="cue-progress-track"><div class="cue-progress-fill" id="cueProgressFill"></div></div>
+    </div>
+    <p style="margin:14px 0 4px"><strong>🏅 Your badges</strong></p>
+    <div class="badges" id="badgeRow">
+      <span class="badge" data-badge="steady">🧭 Steady Hands — locked</span>
+      <span class="badge" data-badge="power">💪 Power Stroke — locked</span>
+      <span class="badge" data-badge="precision">🎯 Sharp Shooter — locked</span>
+      <span class="badge" data-badge="golden">👑 Golden Champion — locked</span>
+    </div>
+    <p id="cueMsg" style="margin-top:10px;min-height:1.2em" aria-live="polite"></p>
+  </section>
+
+  <section class="card how" style="margin-top:14px">
+    <h2>How to play</h2>
+    <ul>
+      <li><strong>Aim:</strong> hover / move your finger over the table. Use ◀ ▶ for fine aim.</li>
+      <li><strong>Aim sway — mouse controlled:</strong> moving your mouse (or finger) left and right pushes the sway left and right — the dot under the table follows your mouse. Nudge it to line up the guide, drag the sway meter directly, or scroll the mouse wheel over the table for fine control. Drag the Sway amount slider to make the sway wider or narrower, tap <em>Center sway</em> to reset it to the middle, tap <em>Mouse controls sway</em> to switch to the old automatic swing, or tap <em>Sway on/off</em> to turn it off.</li>
+      <li><strong>Shoot:</strong> drag back on the table and release, or set Power and tap <em>Shoot</em>. Try <em>Break shot</em> to open a new rack.</li>
+      <li><strong>Bounce:</strong> the cushions are springy — balls bounce lively off the rails and off each other, roll long, and scatter wide on the break. Use the banks!</li>
+      <li><strong>Levels:</strong> 30 levels in 3 stages — <strong>Silver (Levels 1–10)</strong>, <strong>Gold (11–20)</strong> and <strong>Platinum (21–30)</strong>. Clear a table to unlock the next level; finishing Level 10 or 20 moves you up a stage. Tap any unlocked level in the level panel to replay it.</li>
+      <li><strong>Skip to next stage:</strong> for <strong>1000 coins ($10)</strong> at $5 = 500 coins you can skip from Silver to Gold or Gold to Platinum, even without finishing the current stage. You do <strong>not</strong> get the stage-completion bonus for the stage you skip, and there is no skip on Platinum — it is the last stage.</li>
+      <li><strong>Goal:</strong> pot all 15 coloured balls in any order before your shots run out. The shot limit drops from 30 on Level 1 to 18 on Level 30.</li>
+      <li><strong>Getting harder:</strong> every level adds a little more aim sway and slightly tighter pockets, on top of the shrinking shot limit. Better cues (below) help counter the sway.</li>
+      <li><strong>Scratch:</strong> if the white cue ball drops in a pocket, it’s spotted back on the table and you lose 5 coins (unless you have a Scratch Shield).</li>
+      <li><strong>Coins:</strong> +10 per ball potted, a clear bonus that grows every level (27 🪙 on Level 1 up to 68 🪙 on Level 30), plus stage bonuses: +100 🪙 for finishing Silver, +150 🪙 for Gold, +250 🪙 for Platinum. Spend them in the Coin shop.</li>
+      <li><strong>Coin packs:</strong> in the Coin shop, from <strong>$5 = 500 coins</strong> up to <strong>$30 = 3,000 coins</strong> ($10 = 1,000, $15 = 1,500, $20 = 2,000, $25 = 2,500) at $1 = 100 coins. Tap a pack to add its coins to your balance — <strong>demo / in-game purchase only, no real money is charged</strong> yet.</li>
+      <li><strong>Cue upgrades:</strong> spend coins on better cues — Steady (less sway), Power (harder shots), Precision (longer guide + prediction), and the Golden Cue (best of all). Unlocking one pays a coin bonus and earns a badge; tap Equip on any cue you own to use it.</li>
+    </ul>
+  </section>
+
+  <footer>Pilikia Pool • A casual clear-the-table game — pot ’em all, 73 and good shooting!</footer>
+</div>
+
+<script>
+(function(){
+  var canvas=document.getElementById('game'), ctx=canvas.getContext('2d');
+  var W=1000,H=540, RAIL=42, BALL_R=11, POCKET_R=21;
+  // ---- Levels: 3 stages x 10 levels = 30 ----
+  var STAGES=[
+    {name:'Silver', icon:'🥈', stageBonus:100},
+    {name:'Gold', icon:'🥇', stageBonus:150},
+    {name:'Platinum', icon:'💎', stageBonus:250}
+  ];
+  var currentLevel=1, highestUnlocked=1, completedLevels={}, levelComplete=false, levelFailed=false;
+  function stageOf(l){ return Math.floor((l-1)/10); }
+  function levelInStage(l){ return ((l-1)%10)+1; }
+  function shotsLimitFor(l){ return 30-Math.round((l-1)*12/29); }
+  function levelSwayMult(l){ return 1+(l-1)*0.035; }
+  function pocketRFor(l){ return Math.round((21-(l-1)*0.14)*10)/10; }
+  function pocketLabel(l){ var r=pocketRFor(l); return r>=20?'Generous':(r>=18.8?'Standard':(r>=17.8?'Tight':'Pro tight')); }
+  function clearBonusFor(l){ return 27+Math.round((l-1)*41/29); }
+  function levelLabel(l){ var s=STAGES[stageOf(l)]; return s.icon+' '+s.name+' — Level '+levelInStage(l)+' of 10'; }
+  var play={x:RAIL,y:RAIL,w:W-RAIL*2,h:H-RAIL*2};
+  var pockets=[
+    {x:play.x,y:play.y},{x:play.x+play.w/2,y:play.y-4},{x:play.x+play.w,y:play.y},
+    {x:play.x,y:play.y+play.h},{x:play.x+play.w/2,y:play.y+play.h+4},{x:play.x+play.w,y:play.y+play.h}
+  ];
+  var COLORS={1:'#f6c90e',2:'#2456c8',3:'#d92b20',4:'#6b2fa0',5:'#f07d18',6:'#1d7a45',7:'#7a1f1f',8:'#161616',9:'#f6c90e',10:'#2456c8',11:'#d92b20',12:'#6b2fa0',13:'#f07d18',14:'#1d7a45',15:'#7a1f1f'};
+  var balls=[], cue=null;
+  var shots=0,potted=0,coins=50, aimAngle=0, power=0.55, charging=false, chargeStart=null, chargePower=0;
+  var guidePro=false, goldenCue=false, shield=false, soundOn=true, audioCtx=null, moving=false;
+  // ---- Cue upgrades: each cue has real gameplay perks ----
+  var CUES={
+    basic:    {name:'Basic Cue',    price:0,   swayMult:1.00, powerMult:1.00, guideBonus:0,   predict:false, color:'#c98a4b', bonus:0,  badge:null,                perk:'standard sway, power and aim guide'},
+    steady:   {name:'Steady Cue',   price:40,  swayMult:0.45, powerMult:1.00, guideBonus:0,   predict:false, color:'#2e7d6b', bonus:10, badge:'🧭 Steady Hands',   perk:'aim sway cut by 55%'},
+    power:    {name:'Power Cue',    price:80,  swayMult:0.85, powerMult:1.18, guideBonus:0,   predict:false, color:'#8f2f1a', bonus:15, badge:'💪 Power Stroke',   perk:'shot power +18%, slightly steadier sway'},
+    precision:{name:'Precision Cue',price:140, swayMult:0.70, powerMult:1.05, guideBonus:300, predict:true,  color:'#2456c8', bonus:20, badge:'🎯 Sharp Shooter',  perk:'long guide + first-ball prediction, sway cut by 30%, power +5%'},
+    golden:   {name:'Golden Cue',   price:250, swayMult:0.40, powerMult:1.20, guideBonus:340, predict:true,  color:'#d9a441', bonus:40, badge:'👑 Golden Champion', perk:'sway cut by 60%, power +20%, longest guide + prediction'}
+  };
+  var CUE_ORDER=['basic','steady','power','precision','golden'];
+  var ownedCues={basic:true}, equippedCue='basic';
+  function currentCue(){ return CUES[equippedCue]; }
+  function effSway(){ return swayAmount*currentCue().swayMult*levelSwayMult(currentLevel); }
+  var reduceMotion=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var swayOn=true, swayAmount=0.10;
+  // Sway control: 'mouse' (default) = the mouse/finger steers the sway; 'auto' = old self-swinging sway
+  var swayMode='mouse', mouseSway=0, mouseSwayTarget=0, lastPointerX=null, lastPointerY=null;
+  function clampSway(v){ var a=effSway(); return Math.max(-a,Math.min(a,v)); }
+  function setMouseSway(v){ mouseSwayTarget=clampSway(v); if(swayMode!=='mouse'){ swayMode='mouse'; syncSwayModeBtn(); } if(!swayOn){ swayOn=true; syncSwayBtn(); } }
+  function swayOffset(){
+    if(!swayOn) return 0;
+    if(swayMode==='mouse'){
+      // ease the actual sway toward wherever the mouse has pushed it
+      mouseSway+=(mouseSwayTarget-mouseSway)*0.22;
+      if(Math.abs(mouseSwayTarget-mouseSway)<0.0004) mouseSway=mouseSwayTarget;
+      return mouseSway;
+    }
+    return Math.sin(Date.now()*0.0018)*effSway();
+  }
+  function aimNow(){ return aimAngle+swayOffset(); }
+  var el={
+    shots:document.getElementById('statShots'), potted:document.getElementById('statPotted'), left:document.getElementById('statLeft'),
+    coins:document.getElementById('statCoins'), msg:document.getElementById('msg'), fill:document.getElementById('powerFill'),
+    pct:document.getElementById('powerPct'), range:document.getElementById('powerRange'), win:document.getElementById('winBox'),
+    winText:document.getElementById('winText'), shopMsg:document.getElementById('shopMsg'), packMsg:document.getElementById('packMsg'),
+    shoot:document.getElementById('shootBtn'), breakBtn:document.getElementById('breakBtn'),
+    swayDot:document.getElementById('swayDot'), swayVal:document.getElementById('swayVal'),
+    swayBtn:document.getElementById('swayBtn'), swayRange:document.getElementById('swayRange'),
+    swayModeBtn:document.getElementById('swayModeBtn'), swayCenterBtn:document.getElementById('swayCenterBtn'),
+    swayTrack:document.getElementById('swayTrack'),
+    statCue:document.getElementById('statCue'), cuePerk:document.getElementById('cuePerkLine'),
+    cueMsg:document.getElementById('cueMsg'), cueProgressText:document.getElementById('cueProgressText'),
+    cueProgressFill:document.getElementById('cueProgressFill'),
+    statLevel:document.getElementById('statLevel'), statShotsLeft:document.getElementById('statShotsLeft'),
+    levelTitle:document.getElementById('levelTitle'), levelSub:document.getElementById('levelSub'),
+    levelMsg:document.getElementById('levelMsg'), overallFill:document.getElementById('overallFill'),
+    overallText:document.getElementById('overallText'),
+    factShotsLeft:document.getElementById('factShotsLeft'), factSway:document.getElementById('factSway'),
+    factPockets:document.getElementById('factPockets'), factReward:document.getElementById('factReward'),
+    fail:document.getElementById('failBox'), failText:document.getElementById('failText'),
+    winTitle:document.getElementById('winTitle'), winAgain:document.getElementById('winAgain'),
+    skipBtn:document.getElementById('skipStageBtn'), skipText:document.getElementById('skipStageText'),
+    skipNeed:document.getElementById('skipStageNeed')
+  };
+  var SKIP_COST=1000;
+  function say(t){ el.msg.textContent=t||''; }
+  function buildLevelGrid(){
+    STAGES.forEach(function(s,si){
+      var grid=document.querySelector('[data-level-grid="'+si+'"]'); if(!grid) return;
+      grid.innerHTML='';
+      for(var n=1;n<=10;n++){
+        (function(lvl){
+          var b=document.createElement('button');
+          b.type='button'; b.className='lvl-btn'; b.setAttribute('data-lvl-btn',String(lvl));
+          b.innerHTML=lvl+'<small>Level</small>';
+          b.addEventListener('click',function(){ loadLevel(lvl); });
+          grid.appendChild(b);
+        })(si*10+n);
+      }
+    });
+  }
+  function syncLevels(){
+    var s=STAGES[stageOf(currentLevel)], lis=levelInStage(currentLevel), limit=shotsLimitFor(currentLevel);
+    var left=Math.max(0,limit-shots);
+    if(el.statLevel) el.statLevel.textContent=s.name+' · L'+lis;
+    if(el.statShotsLeft) el.statShotsLeft.textContent=left;
+    if(el.levelTitle) el.levelTitle.textContent=levelLabel(currentLevel);
+    if(el.levelSub) el.levelSub.textContent='Level '+currentLevel+' of 30 overall • Clear the table in '+limit+' shots or fewer to advance.'+(lis===10?' Finish this one to complete the '+s.name+' stage and earn the +'+s.stageBonus+' 🪙 stage bonus.':' Later levels get tighter pockets, more aim sway and fewer shots.');
+    if(el.factShotsLeft){ el.factShotsLeft.textContent=left; el.factShotsLeft.parentElement.classList.toggle('warn',left<=3&&!levelComplete); }
+    if(el.factSway) el.factSway.textContent='×'+levelSwayMult(currentLevel).toFixed(2);
+    if(el.factPockets) el.factPockets.textContent=pocketLabel(currentLevel);
+    if(el.factReward) el.factReward.textContent='+'+clearBonusFor(currentLevel)+' 🪙'+(lis===10?' +'+s.stageBonus+' stage':'');
+    var doneCount=Object.keys(completedLevels).length;
+    if(el.overallFill) el.overallFill.style.width=Math.max(3.3,doneCount/30*100)+'%';
+    if(el.overallText) el.overallText.textContent='Overall progress: Level '+currentLevel+' of 30 • '+doneCount+' of 30 levels cleared'+(doneCount>=30?' — Platinum champion! 🏆':'');
+    document.querySelectorAll('[data-stage-block]').forEach(function(block,si){ block.classList.toggle('active',si===stageOf(currentLevel)); });
+    document.querySelectorAll('[data-lvl-btn]').forEach(function(btn){
+      var lvl=parseInt(btn.getAttribute('data-lvl-btn'),10), done=!!completedLevels[lvl], unlocked=lvl<=highestUnlocked;
+      btn.disabled=!unlocked;
+      btn.classList.toggle('current',lvl===currentLevel);
+      btn.classList.toggle('done',done);
+      btn.innerHTML=lvl+'<small>'+(done?'✓ Done':(lvl===currentLevel?'Playing':(unlocked?'Level':'Locked')))+'</small>';
+      btn.setAttribute('aria-label',STAGES[stageOf(lvl)].name+' level '+levelInStage(lvl)+(done?', cleared':(unlocked?'':', locked')));
+    });
+    syncSkip();
+  }
+  function syncSkip(){
+    if(!el.skipBtn) return;
+    var si=stageOf(currentLevel);
+    if(si>=STAGES.length-1){
+      el.skipBtn.disabled=true;
+      el.skipBtn.textContent='Skip to Next Stage — 1000 coins ($10)';
+      if(el.skipText) el.skipText.textContent='You are on Platinum — the final stage. There is no next stage to skip to.';
+      if(el.skipNeed){ el.skipNeed.textContent='No next stage — you are on Platinum, the last stage.'; el.skipNeed.className='skip-need'; }
+      return;
+    }
+    var nextStage=STAGES[si+1], targetLevel=(si+1)*10+1;
+    if(el.skipText) el.skipText.textContent='Jump from '+STAGES[si].name+' to '+nextStage.name+' (Level '+targetLevel+'), even if you have not finished '+STAGES[si].name+'. No stage-completion bonus for the stage you skip. Rate: $5 = 500 coins, so 1000 coins = $10.';
+    if(coins>=SKIP_COST){
+      el.skipBtn.disabled=false;
+      el.skipBtn.textContent='Skip to Next Stage — 1000 coins ($10)';
+      if(el.skipNeed){ el.skipNeed.textContent='✓ You can afford this — you have '+coins+' / 1000 🪙. Skip to '+nextStage.name+' now.'; el.skipNeed.className='skip-need ok'; }
+    } else {
+      el.skipBtn.disabled=true;
+      el.skipBtn.textContent='Skip to Next Stage — 1000 coins ($10)';
+      var needSkip=SKIP_COST-coins;
+      if(el.skipNeed){ el.skipNeed.textContent='Need '+needSkip+' more coin'+(needSkip===1?'':'s')+' — you have '+coins+' / 1000 🪙'; el.skipNeed.className='skip-need need'; }
+    }
+  }
+  function skipToNextStage(){
+    var si=stageOf(currentLevel);
+    if(si>=STAGES.length-1) return;
+    if(coins<SKIP_COST){ syncSkip(); return; }
+    var fromStage=STAGES[si], nextStage=STAGES[si+1], targetLevel=(si+1)*10+1;
+    coins-=SKIP_COST;
+    highestUnlocked=Math.max(highestUnlocked,targetLevel);
+    loadLevel(targetLevel);
+    if(el.levelMsg) el.levelMsg.textContent='⏭️ Skipped from '+fromStage.name+' to '+nextStage.name+' — Level '+targetLevel+' loaded. 1000 🪙 ($10) spent. No '+fromStage.name+' stage bonus was awarded for the skipped stage.';
+    say('⏭️ Skipped to '+nextStage.name+' — 1000 🪙 spent, no stage bonus');
+    beep(520,0.08,0.06); setTimeout(function(){beep(760,0.1,0.06);},100);
+    updateHUD();
+  }
+  function loadLevel(lvl){
+    if(lvl<1||lvl>30||lvl>highestUnlocked) return;
+    currentLevel=lvl; rack();
+    if(el.levelMsg) el.levelMsg.textContent=levelLabel(lvl)+' loaded — Level '+lvl+' of 30. '+shotsLimitFor(lvl)+' shots, sway ×'+levelSwayMult(lvl).toFixed(2)+', '+pocketLabel(lvl).toLowerCase()+' pockets.';
+  }
+  function updateHUD(){
+    el.shots.textContent=shots; el.potted.textContent=potted+' / 15'; el.left.textContent=(15-potted);
+    el.coins.textContent='🪙 '+coins;
+    syncLevels();
+    var pct=Math.round((charging?chargePower:power)*100);
+    el.fill.style.width=pct+'%'; el.pct.textContent=pct+'%';
+    var stopped=!moving&&!levelComplete&&!levelFailed;
+    el.shoot.disabled=!stopped; el.breakBtn.disabled=!stopped;
+    document.getElementById('buyGuide').disabled=guidePro||coins<30;
+    document.getElementById('buyGuide').textContent=guidePro?'Owned ✓':'30 🪙';
+    document.getElementById('buyCue').disabled=goldenCue||coins<50;
+    document.getElementById('buyCue').textContent=goldenCue?'Owned ✓':'50 🪙';
+    document.getElementById('buyShield').disabled=shield||coins<20;
+    document.getElementById('buyShield').textContent=shield?'Active ✓':'20 🪙';
+    syncCues();
+  }
+  function syncCues(){
+    var cue=currentCue();
+    if(el.statCue) el.statCue.textContent=cue.name;
+    if(el.cuePerk) el.cuePerk.innerHTML='🎱 <strong>'+cue.name+' equipped</strong> — '+cue.perk+'.';
+    var balEl=document.getElementById('cueBalanceCoins'); if(balEl) balEl.textContent='🪙 '+coins+' coins';
+    CUE_ORDER.forEach(function(id){
+      var c=CUES[id], owned=!!ownedCues[id], equipped=(equippedCue===id);
+      var card=document.querySelector('.cue-card[data-cue="'+id+'"]'); if(!card) return;
+      card.classList.toggle('equipped',equipped);
+      var priceEl=card.querySelector('[data-cue-price]');
+      if(priceEl){ if(c.price===0){ priceEl.innerHTML='Free'; priceEl.classList.add('free'); } else { priceEl.innerHTML='<span class="coin">🪙</span> '+c.price+' coins'; priceEl.classList.remove('free'); } }
+      var dollarEl=card.querySelector('[data-cue-dollar]');
+      if(dollarEl){ dollarEl.innerHTML='= $'+(c.price/100).toFixed(2)+' <span>equivalent value</span>'; }
+      var needEl=card.querySelector('[data-cue-need]');
+      if(needEl){
+        if(equipped){ needEl.textContent='Equipped — you own this cue'; needEl.className='cue-need owned'; }
+        else if(owned){ needEl.textContent='Owned — tap Equip to use it (Free to equip)'; needEl.className='cue-need owned'; }
+        else if(c.price===0){ needEl.textContent='Already yours — no coins needed'; needEl.className='cue-need owned'; }
+        else if(coins>=c.price){ needEl.textContent='✓ You can afford this cue — '+coins+' coins available'; needEl.className='cue-need ok'; }
+        else { var need=c.price-coins; needEl.textContent='Need '+need+' more coin'+(need===1?'':'s')+' — you have '+coins+' / '+c.price+' 🪙'; needEl.className='cue-need need'; }
+      }
+      var st=card.querySelector('[data-cue-state]'), btn=card.querySelector('[data-cue-btn]');
+      if(st){ st.textContent=equipped?'Equipped':(owned?'Owned':'Locked'); st.className='cue-state '+(equipped?'equipped':(owned?'owned':'locked')); }
+      if(btn){
+        if(equipped){ btn.textContent='Equipped ✓'; btn.disabled=true; btn.classList.remove('primary','gold'); }
+        else if(owned){ btn.textContent='Equip'; btn.disabled=false; btn.classList.add('primary'); btn.classList.remove('gold'); }
+        else { btn.textContent='Unlock • '+c.price+' 🪙'; btn.disabled=coins<c.price; btn.classList.toggle('gold',id==='golden'); btn.classList.remove('primary'); }
+      }
+      var badge=document.querySelector('[data-badge="'+id+'"]');
+      if(badge&&c.badge){ badge.textContent=c.badge+(owned?' — earned 🏅':' — locked'); badge.classList.toggle('locked',!owned); }
+    });
+    // progress toward the next locked cue
+    var next=null;
+    for(var i=0;i<CUE_ORDER.length;i++){ if(!ownedCues[CUE_ORDER[i]]){ next=CUES[CUE_ORDER[i]]; break; } }
+    if(next){
+      var pctNext=Math.max(0,Math.min(100,Math.round(coins/next.price*100)));
+      if(el.cueProgressText) el.cueProgressText.textContent=coins+' / '+next.price+' 🪙 toward the '+next.name+' ('+Math.max(0,next.price-coins)+' to go)';
+      if(el.cueProgressFill) el.cueProgressFill.style.width=pctNext+'%';
+    } else {
+      if(el.cueProgressText) el.cueProgressText.textContent='All cues unlocked — you own the whole rack! 👑';
+      if(el.cueProgressFill) el.cueProgressFill.style.width='100%';
+    }
+  }
+  function unlockOrEquipCue(id){
+    var c=CUES[id]; if(!c) return;
+    if(ownedCues[id]){ equippedCue=id; mouseSway=clampSway(mouseSway); mouseSwayTarget=clampSway(mouseSwayTarget); if(el.cueMsg) el.cueMsg.textContent=c.name+' equipped — '+c.perk+'.'; beep(520,0.07,0.05); updateHUD(); draw(); return; }
+    if(coins<c.price){ if(el.cueMsg) el.cueMsg.textContent='Not enough coins yet — pot more balls to earn toward the '+c.name+'.'; return; }
+    coins-=c.price; ownedCues[id]=true; equippedCue=id;
+    mouseSway=clampSway(mouseSway); mouseSwayTarget=clampSway(mouseSwayTarget);
+    var bonus=c.bonus||0; coins+=bonus;
+    if(el.cueMsg) el.cueMsg.textContent='🎉 '+c.name+' unlocked and equipped! Reward: +'+bonus+' 🪙 bonus'+(c.badge?' and the '+c.badge+' badge 🏅':'')+'. Perk: '+c.perk+'.';
+    say('🎉 '+c.name+' unlocked! +'+bonus+' 🪙 bonus');
+    beep(660,0.09,0.06); setTimeout(function(){beep(880,0.12,0.06);},110);
+    updateHUD(); draw();
+  }
+  function makeBall(x,y,num){
+    return {x:x,y:y,vx:0,vy:0,r:BALL_R,num:num,color:COLORS[num]||'#fff',active:true,cue:num===0};
+  }
+  function rack(){
+    balls=[]; shots=0; potted=0; levelComplete=false; levelFailed=false; POCKET_R=pocketRFor(currentLevel);
+    el.win.classList.remove('show'); if(el.fail) el.fail.classList.remove('show');
+    cue=makeBall(play.x+play.w*0.25, play.y+play.h/2, 0); cue.color='#ffffff'; balls.push(cue);
+    var apexX=play.x+play.w*0.70, apexY=play.y+play.h/2, order=[1,9,2,8,10,3,11,4,14,5,15,6,12,7,13];
+    var idx=0, gap=BALL_R*2+1.5;
+    for(var row=0;row<5;row++){
+      for(var i=0;i<=row;i++){
+        var x=apexX+row*gap*0.87, y=apexY+(i-row/2)*gap;
+        balls.push(makeBall(x,y,order[idx++])); 
+      }
+    }
+    aimAngle=0; mouseSway=0; mouseSwayTarget=0; lastPointerX=null; say(levelLabel(currentLevel)+' — break time!'); updateHUD(); draw();
+  }
+  function beep(freq,dur,vol){
+    if(!soundOn) return;
+    try{
+      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.state==='suspended') audioCtx.resume();
+      var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+      o.type='sine'; o.frequency.value=freq; g.gain.value=vol||0.06;
+      o.connect(g); g.connect(audioCtx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+(dur||0.07)); o.stop(audioCtx.currentTime+(dur||0.07));
+    }catch(e){}
+  }
+  function shoot(p){
+    if(moving||!cue||!cue.active||levelComplete||levelFailed) return;
+    var sp=(7+ (p||power)*26)*currentCue().powerMult, aa=aimNow();
+    cue.vx=Math.cos(aa)*sp; cue.vy=Math.sin(aa)*sp;
+    shots++; charging=false; say(''); beep(180,0.08,0.08); updateHUD();
+  }
+  function step(){
+    var any=false;
+    for(var s=0;s<2;s++){
+      for(var i=0;i<balls.length;i++){
+        var b=balls[i]; if(!b.active) continue;
+        if(Math.abs(b.vx)>0.01||Math.abs(b.vy)>0.01) any=true;
+        b.x+=b.vx/2; b.y+=b.vy/2; b.vx*=0.9963; b.vy*=0.9963;
+        if(Math.abs(b.vx)<0.015) b.vx=0; if(Math.abs(b.vy)<0.015) b.vy=0;
+        // pockets
+        for(var p=0;p<pockets.length;p++){
+          var pk=pockets[p], dx=b.x-pk.x, dy=b.y-pk.y;
+          if(dx*dx+dy*dy < POCKET_R*POCKET_R){
+            b.active=false; b.vx=b.vy=0; onPot(b); break;
+          }
+        }
+        if(!b.active) continue;
+        if(b.x<play.x+b.r){b.x=play.x+b.r;b.vx=Math.abs(b.vx)*0.99; beep(300,0.04,0.02);}
+        if(b.x>play.x+play.w-b.r){b.x=play.x+play.w-b.r;b.vx=-Math.abs(b.vx)*0.99; beep(300,0.04,0.02);}
+        if(b.y<play.y+b.r){b.y=play.y+b.r;b.vy=Math.abs(b.vy)*0.99; beep(300,0.04,0.02);}
+        if(b.y>play.y+play.h-b.r){b.y=play.y+play.h-b.r;b.vy=-Math.abs(b.vy)*0.99; beep(300,0.04,0.02);}
+      }
+      // collisions
+      for(var a=0;a<balls.length;a++) for(var c=a+1;c<balls.length;c++){
+        var A=balls[a],B=balls[c]; if(!A.active||!B.active) continue;
+        var dx=B.x-A.x, dy=B.y-A.y, d2=dx*dx+dy*dy, min=(A.r+B.r);
+        if(d2>0 && d2<min*min){
+          var d=Math.sqrt(d2), nx=dx/d, ny=dy/d, overlap=(min-d)/2;
+          A.x-=nx*overlap; A.y-=ny*overlap; B.x+=nx*overlap; B.y+=ny*overlap;
+          var rvx=B.vx-A.vx, rvy=B.vy-A.vy, rel=rvx*nx+rvy*ny;
+          if(rel<0){ var bounce=rel*1.09; A.vx+=bounce*nx; A.vy+=bounce*ny; B.vx-=bounce*nx; B.vy-=bounce*ny; beep(520,0.05,0.04); }
+        }
+      }
+    }
+    var wasMoving=moving; moving=balls.some(function(b){return b.active&&(b.vx!==0||b.vy!==0);});
+    if(wasMoving&&!moving){
+      updateHUD();
+      if(!levelComplete&&!levelFailed&&potted<15&&shots>=shotsLimitFor(currentLevel)){
+        levelFailed=true;
+        if(el.failText) el.failText.textContent='You used all '+shotsLimitFor(currentLevel)+' shots on '+levelLabel(currentLevel)+' with '+(15-potted)+' ball'+((15-potted)===1?'':'s')+' still on the table. No clear bonus this time — try again, or replay an earlier level to earn coins for a steadier cue.';
+        if(el.fail) el.fail.classList.add('show');
+        say('Out of shots — try '+levelLabel(currentLevel)+' again');
+        beep(140,0.18,0.07);
+        updateHUD();
+      } else if(!levelComplete&&potted<15&&shots>0){
+        var shotsLeftNow=shotsLimitFor(currentLevel)-shots;
+        if(shotsLeftNow<=3&&shotsLeftNow>0) say(shotsLeftNow+' shot'+(shotsLeftNow===1?'':'s')+' left — make them count!');
+      }
+    }
+    draw();
+    requestAnimationFrame(step);
+  }
+  function onPot(b){
+    if(b.cue){
+      if(shield){ shield=false; say('Scratch Shield saved your cue ball!'); }
+      else { coins=Math.max(0,coins-5); say('Scratch! Cue ball back on the table (−5 🪙)'); }
+      beep(140,0.15,0.08);
+      setTimeout(function(){
+        cue.x=play.x+play.w*0.25; cue.y=play.y+play.h/2; cue.vx=cue.vy=0; cue.active=true;
+        // nudge if overlapping
+        balls.forEach(function(o){ if(o!==cue&&o.active){ var dx=cue.x-o.x,dy=cue.y-o.y; if(dx*dx+dy*dy< (BALL_R*2+2)*(BALL_R*2+2)){ cue.y+=BALL_R*2+4; } }});
+        updateHUD(); draw();
+      },350);
+    } else {
+      potted++; coins+=10; beep(880,0.09,0.07); say('Nice pot! +10 🪙  •  '+potted+' of 15 down');
+      if(potted>=15&&!levelComplete){
+        levelComplete=true;
+        var lvlDone=currentLevel, sDone=STAGES[stageOf(lvlDone)], isStageEnd=(levelInStage(lvlDone)===10), isFinal=(lvlDone===30);
+        var clearBonus=clearBonusFor(lvlDone), stageBonus=isStageEnd?sDone.stageBonus:0;
+        coins+=clearBonus+stageBonus;
+        completedLevels[lvlDone]=true;
+        if(lvlDone+1<=30) highestUnlocked=Math.max(highestUnlocked,lvlDone+1);
+        if(el.winTitle) el.winTitle.textContent=isFinal?'🏆 Platinum complete — you beat all 30 levels!':(isStageEnd?'🏆 '+sDone.name+' stage complete!':'🏆 '+levelLabel(lvlDone)+' cleared!');
+        el.winText.textContent='You potted all 15 balls in '+shots+' shot'+(shots===1?'':'s')+' (limit '+shotsLimitFor(lvlDone)+'). Clear bonus +'+clearBonus+' 🪙'+(stageBonus?' • Stage bonus +'+stageBonus+' 🪙':'')+'.'+(isFinal?' You finished Silver, Gold and Platinum — champion shooting!':(isStageEnd?' Next up: '+levelLabel(lvlDone+1)+'.':' Next up: '+levelLabel(lvlDone+1)+'.'));
+        if(el.winAgain) el.winAgain.textContent=isFinal?'↺ Play Level 30 again':'Next level → '+levelLabel(lvlDone+1);
+        el.win.classList.add('show'); say(isStageEnd?'🏆 '+sDone.name+' stage complete! +'+stageBonus+' 🪙 stage bonus':'🏆 '+levelLabel(lvlDone)+' cleared!');
+        if(el.levelMsg) el.levelMsg.textContent=levelLabel(lvlDone)+' cleared! Earned +'+clearBonus+' 🪙 clear bonus'+(stageBonus?' and +'+stageBonus+' 🪙 stage bonus':'')+'. '+(isFinal?'All 30 levels done!':levelLabel(Math.min(30,lvlDone+1))+' is now unlocked.');
+        beep(660,0.09,0.06); setTimeout(function(){beep(880,0.12,0.06);},110);
+        if(isStageEnd) setTimeout(function(){beep(1040,0.16,0.06);},240);
+      }
+    }
+    updateHUD();
+  }
+  function draw(){
+    // sway indicator (the game loop redraws every frame, so the dot keeps swinging)
+    if(el.swayDot){
+      var so=swayOffset(), ea=effSway(), frac=ea>0? so/ea : 0;
+      el.swayDot.style.left=(50+frac*42)+'%';
+      el.swayDot.classList.toggle('off',!swayOn);
+      el.swayVal.textContent=(so*180/Math.PI).toFixed(1)+'°';
+      if(el.swayTrack) el.swayTrack.setAttribute('aria-valuenow',String(Math.round(frac*100)));
+    }
+    // wood + felt
+    ctx.clearRect(0,0,W,H);
+    var wood=ctx.createLinearGradient(0,0,0,H); wood.addColorStop(0,'#5a3620'); wood.addColorStop(1,'#3a2417');
+    ctx.fillStyle=wood; roundRect(0,0,W,H,22); ctx.fill();
+    ctx.fillStyle='#7a4a28'; roundRect(10,10,W-20,H-20,16); ctx.fill();
+    ctx.fillStyle='#1d6b45'; ctx.fillRect(play.x,play.y,play.w,play.h);
+    // felt shading
+    var fg=ctx.createRadialGradient(W/2,H/2,80,W/2,H/2,620); fg.addColorStop(0,'rgba(255,255,255,0.10)'); fg.addColorStop(1,'rgba(0,0,0,0.18)');
+    ctx.fillStyle=fg; ctx.fillRect(play.x,play.y,play.w,play.h);
+    // ---- Pilikia felt design (kept subtle so balls & aim stay easy to read) ----
+    ctx.save();
+    var cx=W/2, cy=H/2;
+    // sunset disc behind the wordmark
+    var sun=ctx.createRadialGradient(cx,cy-26,10,cx,cy-26,170);
+    sun.addColorStop(0,'rgba(240,125,24,0.16)'); sun.addColorStop(0.55,'rgba(217,164,65,0.10)'); sun.addColorStop(1,'rgba(217,164,65,0)');
+    ctx.fillStyle=sun; ctx.beginPath(); ctx.arc(cx,cy-26,170,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy-26,118,0,Math.PI*2); ctx.fillStyle='rgba(246,201,14,0.10)'; ctx.fill();
+    // red dirt road running up through the sunset
+    ctx.beginPath();
+    ctx.moveTo(cx-16,cy-26); ctx.lineTo(cx+16,cy-26); ctx.lineTo(cx+86,cy+158); ctx.lineTo(cx-86,cy+158); ctx.closePath();
+    ctx.fillStyle='rgba(193,83,31,0.10)'; ctx.fill();
+    ctx.strokeStyle='rgba(255,240,200,0.10)'; ctx.lineWidth=3; ctx.setLineDash([16,14]);
+    ctx.beginPath(); ctx.moveTo(cx,cy-20); ctx.lineTo(cx,cy+152); ctx.stroke(); ctx.setLineDash([]);
+    // ring around the centre
+    ctx.beginPath(); ctx.arc(cx,cy,196,0,Math.PI*2); ctx.strokeStyle='rgba(255,248,225,0.07)'; ctx.lineWidth=10; ctx.stroke();
+    // wordmark
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='700 96px Georgia, "Times New Roman", serif';
+    ctx.fillStyle='rgba(255,248,225,0.13)'; ctx.fillText('P I L I K I A',cx,cy-58);
+    ctx.font='700 30px Georgia, "Times New Roman", serif';
+    ctx.fillStyle='rgba(255,248,225,0.15)'; ctx.fillText('‘A‘OHE PILIKIA',cx,cy+6);
+    ctx.font='italic 700 24px Georgia, "Times New Roman", serif';
+    ctx.fillStyle='rgba(246,201,14,0.20)'; ctx.fillText('— No Trouble —',cx,cy+42);
+    ctx.restore();
+    // head string
+    ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(play.x+play.w*0.25,play.y); ctx.lineTo(play.x+play.w*0.25,play.y+play.h); ctx.stroke();
+    // diamonds
+    ctx.fillStyle='#f3e9d2';
+    for(var i=1;i<8;i++){ diamond(play.x+play.w*i/8, 21); diamond(play.x+play.w*i/8, H-21); }
+    for(var j=1;j<4;j++){ diamond(21, play.y+play.h*j/4); diamond(W-21, play.y+play.h*j/4); }
+    // pockets
+    pockets.forEach(function(p){ ctx.beginPath(); ctx.arc(p.x,p.y,POCKET_R,0,Math.PI*2); ctx.fillStyle='#0a0a0a'; ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle='#c9a227'; ctx.stroke(); });
+    // aim guide
+    if(!moving&&cue&&cue.active){
+      var aa=aimNow();
+      var cueDef=currentCue();
+      var hasPredict=guidePro||cueDef.predict;
+      var len=(guidePro?520:260)+cueDef.guideBonus;
+      var ex=cue.x+Math.cos(aa)*len, ey=cue.y+Math.sin(aa)*len;
+      // find first ball hit when prediction is on (Long Aim Guide or Precision/Golden cue)
+      if(hasPredict){
+        var best=len;
+        balls.forEach(function(b){ if(b===cue||!b.active) return; var dx=b.x-cue.x, dy=b.y-cue.y; var proj=dx*Math.cos(aa)+dy*Math.sin(aa); if(proj>0){ var perp=Math.abs(-dx*Math.sin(aa)+dy*Math.cos(aa)); if(perp<BALL_R*2 && proj<best) best=proj; }});
+        ex=cue.x+Math.cos(aa)*best; ey=cue.y+Math.sin(aa)*best;
+      }
+      ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.75)'; ctx.lineWidth=2; ctx.setLineDash([8,8]);
+      ctx.beginPath(); ctx.moveTo(cue.x,cue.y); ctx.lineTo(ex,ey); ctx.stroke(); ctx.restore();
+      // cue stick
+      var back=charging? 46+chargePower*70 : 46;
+      var x1=cue.x-Math.cos(aa)*(BALL_R+back), y1=cue.y-Math.sin(aa)*(BALL_R+back);
+      var x2=cue.x-Math.cos(aa)*(BALL_R+back+170), y2=cue.y-Math.sin(aa)*(BALL_R+back+170);
+      ctx.save(); ctx.lineWidth=7; ctx.lineCap='round'; ctx.strokeStyle=(equippedCue==='golden'||goldenCue)?'#d9a441':cueDef.color;
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      ctx.lineWidth=3; ctx.strokeStyle='#2b2b2b'; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(cue.x-Math.cos(aa)*(BALL_R+back-14), cue.y-Math.sin(aa)*(BALL_R+back-14)); ctx.stroke(); ctx.restore();
+    }
+    // balls
+    balls.forEach(function(b){ if(!b.active) return;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(b.x+2,b.y+3,b.r,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      if(b.cue){ ctx.fillStyle='#ffffff'; }
+      else if(b.num>8){ ctx.fillStyle='#f7f3e8'; }
+      else ctx.fillStyle=b.color;
+      ctx.fill(); ctx.lineWidth=1; ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.stroke();
+      if(!b.cue){
+        if(b.num>8){ ctx.save(); ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2); ctx.clip(); ctx.fillStyle=b.color; ctx.fillRect(b.x-b.r,b.y-b.r*0.55,b.r*2,b.r*1.1); ctx.restore(); }
+        ctx.beginPath(); ctx.arc(b.x,b.y,6.2,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+        ctx.fillStyle='#111'; ctx.font='bold 8px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(b.num,b.x,b.y+0.5);
+      } else {
+        ctx.beginPath(); ctx.arc(b.x-3,b.y-3,3,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.08)'; ctx.fill();
+      }
+      // shine
+      ctx.beginPath(); ctx.arc(b.x-3.5,b.y-4,3,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.fill();
+      ctx.restore();
+    });
+  }
+  function diamond(x,y){ ctx.save(); ctx.translate(x,y); ctx.rotate(Math.PI/4); ctx.fillRect(-4,-4,8,8); ctx.restore(); }
+  function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function pointerPos(e){ var r=canvas.getBoundingClientRect(); return {x:(e.clientX-r.left)*W/r.width, y:(e.clientY-r.top)*H/r.height}; }
+  // Mouse / finger steering: horizontal movement pushes the sway the same way.
+  // Moving the pointer left pushes the sway (and the guide line) left; right pushes it right.
+  function steerSwayWithPointer(p){
+    if(lastPointerX===null){ lastPointerX=p.x; lastPointerY=p.y; return; }
+    var dx=p.x-lastPointerX;
+    lastPointerX=p.x; lastPointerY=p.y;
+    if(swayMode==='mouse'&&swayOn&&dx!==0){
+      mouseSwayTarget=clampSway(mouseSwayTarget+dx*0.00055);
+    }
+  }
+  canvas.addEventListener('pointermove',function(e){ var p=pointerPos(e); if(moving){ lastPointerX=p.x; lastPointerY=p.y; return; } steerSwayWithPointer(p); if(cue&&cue.active&&!charging){ aimAngle=Math.atan2(p.y-cue.y,p.x-cue.x); draw(); } if(charging){ var dx=p.x-cue.x, dy=p.y-cue.y, aa=aimNow(); var pull=-(dx*Math.cos(aa)+dy*Math.sin(aa)); chargePower=Math.max(0.08,Math.min(1,pull/260)); updateHUD(); draw(); } });
+  canvas.addEventListener('pointerdown',function(e){ if(moving||!cue||!cue.active||levelComplete||levelFailed) return; var p=pointerPos(e); lastPointerX=p.x; lastPointerY=p.y; aimAngle=Math.atan2(p.y-cue.y,p.x-cue.x); charging=true; chargeStart=p; chargePower=0.15; canvas.setPointerCapture(e.pointerId); updateHUD(); draw(); });
+  // Mouse wheel over the table = fine sway control
+  canvas.addEventListener('wheel',function(e){ if(swayMode!=='mouse'||!swayOn) return; e.preventDefault(); setMouseSway(mouseSwayTarget+(e.deltaY>0?0.008:-0.008)); draw(); },{passive:false});
+  canvas.addEventListener('pointerup',function(e){ if(!charging) return; charging=false; if(chargePower>0.12){ power=chargePower; el.range.value=Math.round(power*100); shoot(power); } updateHUD(); draw(); });
+  canvas.addEventListener('pointercancel',function(){ charging=false; updateHUD(); draw(); });
+  el.range.addEventListener('input',function(){ power=el.range.value/100; if(!charging) updateHUD(); draw(); });
+  el.shoot.addEventListener('click',function(){ shoot(power); });
+  el.breakBtn.addEventListener('click',function(){ aimAngle=0; power=0.95; el.range.value=95; updateHUD(); shoot(0.95); });
+  document.getElementById('newRackBtn').addEventListener('click',function(){ rack(); if(el.levelMsg) el.levelMsg.textContent=levelLabel(currentLevel)+' restarted — Level '+currentLevel+' of 30.'; });
+  document.getElementById('winAgain').addEventListener('click',function(){ if(currentLevel<30&&completedLevels[currentLevel]){ loadLevel(currentLevel+1); } else { rack(); } });
+  if(el.skipBtn) el.skipBtn.addEventListener('click',function(){ skipToNextStage(); });
+  var winReplayBtn=document.getElementById('winReplay'); if(winReplayBtn) winReplayBtn.addEventListener('click',function(){ rack(); });
+  var failRetryBtn=document.getElementById('failRetry'); if(failRetryBtn) failRetryBtn.addEventListener('click',function(){ rack(); });
+  document.getElementById('aimLeft').addEventListener('click',function(){ aimAngle-=0.045; draw(); });
+  document.getElementById('aimRight').addEventListener('click',function(){ aimAngle+=0.045; draw(); });
+  document.getElementById('soundBtn').addEventListener('click',function(){ soundOn=!soundOn; this.textContent=soundOn?'🔊 Sound on':'🔇 Sound off'; if(soundOn) beep(660,0.06,0.05); });
+  function syncSwayBtn(){ el.swayBtn.textContent=swayOn?'Sway on':'Sway off'; el.swayBtn.setAttribute('aria-pressed',swayOn?'true':'false'); }
+  function syncSwayModeBtn(){ if(!el.swayModeBtn) return; var isMouse=swayMode==='mouse'; el.swayModeBtn.textContent=isMouse?'🖱️ Mouse controls sway':'🔄 Auto sway'; el.swayModeBtn.setAttribute('aria-pressed',isMouse?'true':'false'); }
+  el.swayBtn.addEventListener('click',function(){ swayOn=!swayOn; syncSwayBtn(); draw(); });
+  if(el.swayModeBtn) el.swayModeBtn.addEventListener('click',function(){ swayMode=(swayMode==='mouse')?'auto':'mouse'; if(swayMode==='mouse'){ mouseSway=mouseSwayTarget; } if(!swayOn){ swayOn=true; syncSwayBtn(); } syncSwayModeBtn(); draw(); });
+  if(el.swayCenterBtn) el.swayCenterBtn.addEventListener('click',function(){ setMouseSway(0); mouseSway=0; draw(); });
+  el.swayRange.addEventListener('input',function(){ swayAmount=(el.swayRange.value/100)*0.20; mouseSwayTarget=clampSway(mouseSwayTarget); mouseSway=clampSway(mouseSway); if(swayAmount>0&&!swayOn){ swayOn=true; syncSwayBtn(); } draw(); });
+  // Dragging the sway meter directly with mouse / finger sets the sway
+  if(el.swayTrack){
+    var swayDragging=false;
+    var swayFromTrackEvent=function(e){ var r=el.swayTrack.getBoundingClientRect(); var frac=(e.clientX-r.left)/r.width; frac=Math.max(0,Math.min(1,frac)); setMouseSway((frac-0.5)*2*effSway()); draw(); };
+    el.swayTrack.addEventListener('pointerdown',function(e){ swayDragging=true; try{el.swayTrack.setPointerCapture(e.pointerId);}catch(err){} swayFromTrackEvent(e); });
+    el.swayTrack.addEventListener('pointermove',function(e){ if(swayDragging) swayFromTrackEvent(e); });
+    el.swayTrack.addEventListener('pointerup',function(){ swayDragging=false; });
+    el.swayTrack.addEventListener('pointercancel',function(){ swayDragging=false; });
+    el.swayTrack.addEventListener('keydown',function(e){ if(e.key==='ArrowLeft'){ setMouseSway(mouseSwayTarget-0.01); draw(); e.preventDefault(); } if(e.key==='ArrowRight'){ setMouseSway(mouseSwayTarget+0.01); draw(); e.preventDefault(); } if(e.key==='Home'){ setMouseSway(0); draw(); e.preventDefault(); } });
+  }
+  syncSwayBtn(); syncSwayModeBtn();
+  // ---- Coin packs: $5 = 500 coins ($1 = 100 coins), $5 up to $30 — demo / in-game only, no real charge ----
+  function buyCoinPack(usd, amount){
+    coins+=amount;
+    var formatted=amount.toLocaleString('en-US');
+    if(el.packMsg) el.packMsg.textContent='✅ Demo purchase — $'+usd+' pack added: +'+formatted+' 🪙. New balance: '+coins.toLocaleString('en-US')+' coins. No real money was charged.';
+    if(el.shopMsg) el.shopMsg.textContent='Coin pack added: +'+formatted+' 🪙 ($'+usd+' demo). Balance: '+coins+' 🪙.';
+    say('🪙 +'+formatted+' coins — $'+usd+' pack (demo)');
+    beep(660,0.09,0.06); setTimeout(function(){beep(880,0.12,0.06);},110);
+    updateHUD(); draw();
+  }
+  document.querySelectorAll('[data-pack]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var usd=parseInt(btn.getAttribute('data-pack-usd'),10);
+      var amount=parseInt(btn.getAttribute('data-pack-coins'),10);
+      if(!usd||!amount||amount!==usd*100) return;
+      buyCoinPack(usd,amount);
+    });
+  });
+  document.getElementById('buyGuide').addEventListener('click',function(){ if(coins>=30&&!guidePro){ coins-=30; guidePro=true; el.shopMsg.textContent='Long Aim Guide on — nice shooting ahead.'; } updateHUD(); draw(); });
+  document.getElementById('buyCue').addEventListener('click',function(){ if(coins>=50&&!goldenCue){ coins-=50; goldenCue=true; el.shopMsg.textContent='Golden Cue equipped. Shiny!'; } updateHUD(); draw(); });
+  document.getElementById('buyShield').addEventListener('click',function(){ if(coins>=20&&!shield){ coins-=20; shield=true; el.shopMsg.textContent='Scratch Shield active for your next scratch.'; } updateHUD(); draw(); });
+  // Cue upgrade buttons (unlock / equip)
+  CUE_ORDER.forEach(function(id){
+    var card=document.querySelector('.cue-card[data-cue="'+id+'"]'); if(!card) return;
+    var btn=card.querySelector('[data-cue-btn]'); if(!btn) return;
+    btn.addEventListener('click',function(){ unlockOrEquipCue(id); });
+  });
+  syncCues();
+  buildLevelGrid();
+  window.addEventListener('resize',draw);
+  rack(); requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>
