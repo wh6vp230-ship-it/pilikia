@@ -264,7 +264,7 @@
   <section id="how" class="wrap" style="padding-top:0">
     <div class="section-head">
       <h2>How buying works</h2>
-      <p>Simple, the way a small artist store should be. This page is a storefront — card payment isn’t live here yet.</p>
+      <p>Simple, the way a small artist store should be. You can buy any item right now with the blue “Buy Now with PayPal” button on its card — secure checkout through PayPal. The cart here is still just for working out your order; it doesn't charge anything yet.</p>
     </div>
     <div class="included">
       <div class="inc"><h3>1. Pick your merch</h3><p>Choose a size or colour where it applies and add it to the cart. Your total updates as you go — no surprises at the end.</p></div>
@@ -283,7 +283,7 @@
 
       <div class="arch" aria-label="Architecture">
         <div class="arch-box"><div class="k">1 · Host the store</div><h3>App Platform</h3><p>Runs this storefront for you — no server to patch. It rebuilds and redeploys every time you update the store.</p></div>
-        <div class="arch-box"><div class="k">2 · Take payments</div><h3>Backend + Stripe</h3><p>A small web service (the piece still to build) talks to Stripe: it creates each Checkout session, receives Stripe’s payment webhook, and only then marks an order paid. A static page alone cannot do this.</p></div>
+        <div class="arch-box"><div class="k">2 · Take payments</div><h3>Backend + Stripe</h3><p>PayPal Buy Now is already live on every product card for single-item checkout. The backend below is still the piece to build for cart checkout, Stripe, and keeping order records.</p></div>
         <div class="arch-box"><div class="k">3 · Store the files</div><h3>Spaces</h3><p>Object storage for cover art and product photos, served fast through its built-in CDN.</p></div>
         <div class="arch-box"><div class="k">4 · Keep the orders</div><h3>Managed PostgreSQL</h3><p>A managed database the backend writes orders, customers, and inventory to — with automatic backups turned on.</p></div>
       </div>
